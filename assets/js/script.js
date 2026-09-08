@@ -345,7 +345,7 @@ document.addEventListener("DOMContentLoaded", () => {
       type: "Cinematic Intro Video",
       software: "Capcut & AI",
       date: "Recent Work",
-      youtubeUrl: "https://youtu.be/tvagHZV2JJA",
+      youtubeUrl: "https://youtu.be/qL-46KR6_bc",
       aspectRatio: "horizontal",
     },
     VideoSix: {
