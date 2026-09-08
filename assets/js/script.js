@@ -241,84 +241,30 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   });
 
-  // --- INLINE VIDEO PLAY / PAUSE CONTROLLER ---
-  const videoCards = document.querySelectorAll(".project-video-card");
-
-  videoCards.forEach((card) => {
-    const video = card.querySelector(".card-inline-video");
-    const playBtn = card.querySelector(".btn-play-trigger");
-    const playIcon = card.querySelector(".play-icon");
-    const pauseIcon = card.querySelector(".pause-icon");
-    const soundBadge = card.querySelector(".video-sound-badge");
-    const soundIcon = card.querySelector(".sound-icon");
-
-    if (video && playBtn) {
-      const togglePlay = (e) => {
-        e.stopPropagation(); // Prevent opening modal on play button click
-
-        if (video.paused) {
-          // Pause all other inline videos first
-          document
-            .querySelectorAll(".card-inline-video")
-            .forEach((otherVid) => {
-              if (otherVid !== video && !otherVid.paused) {
-                otherVid.pause();
-                const otherCard = otherVid.closest(".project-video-card");
-                if (otherCard) {
-                  otherCard.classList.remove("is-playing");
-                  const otherPlayIcon = otherCard.querySelector(".play-icon");
-                  const otherPauseIcon = otherCard.querySelector(".pause-icon");
-                  if (otherPlayIcon && otherPauseIcon) {
-                    otherPlayIcon.classList.remove("d-none");
-                    otherPauseIcon.classList.add("d-none");
-                  }
-                }
-              }
-            });
-
-          video.play();
-          card.classList.add("is-playing");
-          playIcon.classList.add("d-none");
-          pauseIcon.classList.remove("d-none");
-        } else {
-          video.pause();
-          card.classList.remove("is-playing");
-          playIcon.classList.remove("d-none");
-          pauseIcon.classList.add("d-none");
-        }
-      };
-
-      playBtn.addEventListener("click", togglePlay);
-
-      // Toggle sound
-      if (soundBadge && soundIcon) {
-        soundBadge.addEventListener("click", (e) => {
-          e.stopPropagation();
-          video.muted = !video.muted;
-          if (video.muted) {
-            soundIcon.classList.remove("fa-volume-high");
-            soundIcon.classList.add("fa-volume-xmark");
-          } else {
-            soundIcon.classList.remove("fa-volume-xmark");
-            soundIcon.classList.add("fa-volume-high");
-          }
-        });
-      }
-
-      // Reset icon on video end
-      video.addEventListener("ended", () => {
-        card.classList.remove("is-playing");
-        playIcon.classList.remove("d-none");
-        pauseIcon.classList.add("d-none");
-      });
+  // --- YOUTUBE ID EXTRACTOR HELPER ---
+  const extractYouTubeId = (url) => {
+    if (!url) return "";
+    url = url.trim();
+    // If it's already an 11-char ID
+    if (/^[A-Za-z0-9_-]{11}$/.test(url)) {
+      return url;
     }
-  });
+    // Matches youtube.com/watch?v=ID, youtu.be/ID, youtube.com/shorts/ID, youtube.com/embed/ID, etc.
+    const regExp = /(?:https?:\/\/)?(?:www\.|m\.)?(?:youtube\.com\/(?:watch\?v=|embed\/|v\/|shorts\/)|youtu\.be\/)([A-Za-z0-9_-]{11})/;
+    const match = url.match(regExp);
+    if (match && match[1]) {
+      return match[1];
+    }
+    // Fallback: extract any 11-character string after a slash or =
+    const fallbackMatch = url.match(/[\/=]([A-Za-z0-9_-]{11})(?:[?&#]|$)/);
+    return fallbackMatch && fallbackMatch[1] ? fallbackMatch[1] : url;
+  };
 
   // --- FEATURED PROJECTS MODAL VIEWER DATABASE ---
   const projectCards = document.querySelectorAll(".project-card-custom");
   const modalElement = document.getElementById("portfolio-modal");
 
-  // Project database with 100% accurate, rich descriptions matching all actual showcase items
+  // Project database with rich descriptions & customizable YouTube links
   const projectDetails = {
     VideoOne: {
       title: "Elegant Invitation Card Design",
@@ -328,6 +274,8 @@ document.addEventListener("DOMContentLoaded", () => {
       type: "Instagram Reel / Short Video",
       software: "Canva & Capcut",
       date: "Recent Work",
+      youtubeUrl: "https://youtube.com/shorts/-EUUpgNxZBc",
+      aspectRatio: "vertical", // "vertical" (9:16) or "horizontal" (16:9)
     },
     VideoTwo: {
       title: "Lead Generation Short Video",
@@ -337,6 +285,8 @@ document.addEventListener("DOMContentLoaded", () => {
       type: "Instagram Reel / Short Video",
       software: "Canva",
       date: "Recent Work",
+      youtubeUrl: "https://youtube.com/shorts/vbkxjJHQpYA",
+      aspectRatio: "vertical",
     },
     ThumbOne: {
       title: "Pro Sales & Marketing Upskill Program",
@@ -355,6 +305,8 @@ document.addEventListener("DOMContentLoaded", () => {
       type: "Promo / Social Reel",
       software: "CapCut",
       date: "Recent Work",
+      youtubeUrl: "https://youtube.com/shorts/aFhU6JbK2T8",
+      aspectRatio: "vertical",
     },
     VideoFour: {
       title: "Introducing RaizonCare",
@@ -364,6 +316,8 @@ document.addEventListener("DOMContentLoaded", () => {
       type: "Intro Video",
       software: "Capcut",
       date: "Recent Work",
+      youtubeUrl: "https://youtu.be/tvagHZV2JJA",
+      aspectRatio: "horizontal",
     },
     SocialOne: {
       title: "Offers Vedaa - Multi-Service Marketplace Banner",
@@ -391,6 +345,8 @@ document.addEventListener("DOMContentLoaded", () => {
       type: "Cinematic Intro Video",
       software: "Capcut & AI",
       date: "Recent Work",
+      youtubeUrl: "https://youtu.be/tvagHZV2JJA",
+      aspectRatio: "horizontal",
     },
     VideoSix: {
       title: "Festive Promotional Video",
@@ -400,6 +356,8 @@ document.addEventListener("DOMContentLoaded", () => {
       type: "Instagram Reel / Short Video",
       software: "Canva",
       date: "Recent Work",
+      youtubeUrl: "https://youtube.com/shorts/OD0rJ1vcFJo",
+      aspectRatio: "vertical",
     },
     ThumbTwo: {
       title: "Safar Sarthi - Har Safar Yaadgaar Travel Creative",
@@ -418,6 +376,8 @@ document.addEventListener("DOMContentLoaded", () => {
       type: "Instagram Reel / Short Video",
       software: "Canva",
       date: "Recent Work",
+      youtubeUrl: "https://youtube.com/shorts/Wl02Z0wc7bU",
+      aspectRatio: "vertical",
     },
     ThumbThree: {
       title: "The Awakers Society - Awake, Skill, Empower Poster",
@@ -468,31 +428,45 @@ document.addEventListener("DOMContentLoaded", () => {
 
   if (modalElement && projectCards.length > 0) {
     const modalImg = document.getElementById("modal-img");
+    const modalVideoBox = document.getElementById("modal-video-box");
+    const modalYoutubeIframe = document.getElementById("modal-youtube-iframe");
     const modalVideo = document.getElementById("modal-video");
     const modalTag = document.getElementById("modal-tag");
     const modalTitle = document.getElementById("modal-title");
     const modalDesc = document.getElementById("modal-desc");
+    const modalYtDirectBtn = document.getElementById("modal-yt-direct-btn");
     const metaClient = document.getElementById("meta-client");
     const metaType = document.getElementById("meta-type");
     const metaSoftware = document.getElementById("meta-software");
     const metaDate = document.getElementById("meta-date");
     const modalImgWrapper = document.querySelector(".modal-media-wrapper");
 
+    // Dynamic thumbnail assignment for video cards from active YouTube links
     projectCards.forEach((card) => {
-      card.addEventListener("click", (e) => {
-        // If clicked directly on the sound toggle or play trigger on card, do not open modal
-        if (
-          e.target.closest(".btn-play-trigger") ||
-          e.target.closest(".video-sound-badge")
-        ) {
-          return;
+      const isVideoCard = card.classList.contains("project-video-card");
+      if (isVideoCard) {
+        const id = card.getAttribute("data-id");
+        const data = id && projectDetails[id] ? projectDetails[id] : {};
+        const ytUrl = card.getAttribute("data-youtube-url") || data.youtubeUrl || "";
+        const ytId = extractYouTubeId(ytUrl);
+        const thumb = card.querySelector(".project-thumbnail");
+        if (thumb && ytId) {
+          const ytThumb = `https://img.youtube.com/vi/${ytId}/hqdefault.jpg`;
+          thumb.style.backgroundImage = `url('${ytThumb}')`;
+          thumb.style.backgroundSize = "cover";
+          thumb.style.backgroundPosition = "center";
+          thumb.setAttribute("data-bg", ytThumb);
         }
+      }
+    });
 
+    projectCards.forEach((card) => {
+      card.addEventListener("click", () => {
         const id = card.getAttribute("data-id");
         const isVideoCard = card.classList.contains("project-video-card");
         const data = id && projectDetails[id] ? projectDetails[id] : {};
 
-        // Extract category safely without throwing null pointer error
+        // Extract category safely
         const categoryBadge =
           card.querySelector(".media-type-badge") ||
           card.querySelector(".project-cat-badge");
@@ -512,54 +486,60 @@ document.addEventListener("DOMContentLoaded", () => {
         const software = data.software || "Canva & AI Tools";
         const date = data.date || "Recent Work";
 
-        // Pause any inline videos currently playing on the page
-        document.querySelectorAll(".card-inline-video").forEach((vid) => {
-          if (!vid.paused) {
-            vid.pause();
-            const parentCard = vid.closest(".project-video-card");
-            if (parentCard) {
-              parentCard.classList.remove("is-playing");
-              const pIcon = parentCard.querySelector(".play-icon");
-              const psIcon = parentCard.querySelector(".pause-icon");
-              if (pIcon && psIcon) {
-                pIcon.classList.remove("d-none");
-                psIcon.classList.add("d-none");
-              }
-            }
-          }
-        });
-
         if (isVideoCard) {
-          const videoSource = card.querySelector("video source")
-            ? card.querySelector("video source").getAttribute("src")
-            : card.querySelector("video")
-              ? card.querySelector("video").getAttribute("src")
-              : "";
+          const ytUrl = card.getAttribute("data-youtube-url") || data.youtubeUrl || "";
+          const ytId = extractYouTubeId(ytUrl);
+          const isVertical =
+            data.aspectRatio === "vertical" ||
+            card.querySelector(".vertical-ratio-video") !== null;
 
           if (modalImgWrapper) {
-            modalImgWrapper.style.backgroundImage = "";
+            modalImgWrapper.classList.remove("modal-ratio-vertical", "modal-ratio-horizontal");
+            modalImgWrapper.classList.add(isVertical ? "modal-ratio-vertical" : "modal-ratio-horizontal");
           }
+
           if (modalImg) {
             modalImg.classList.add("d-none");
             modalImg.removeAttribute("src");
           }
           if (modalVideo) {
-            modalVideo.classList.remove("d-none");
-            modalVideo.src = videoSource;
-            modalVideo.play().catch(() => { });
+            modalVideo.pause();
+            modalVideo.classList.add("d-none");
+            modalVideo.removeAttribute("src");
+          }
+
+          if (modalVideoBox && modalYoutubeIframe && ytId) {
+            modalVideoBox.classList.remove("d-none");
+            let embedUrl = `https://www.youtube-nocookie.com/embed/${ytId}?autoplay=1&enablejsapi=1&rel=0&playsinline=1`;
+            if (window.location.origin && window.location.origin !== "null" && !window.location.origin.startsWith("file:")) {
+              embedUrl += `&origin=${encodeURIComponent(window.location.origin)}`;
+            }
+            modalYoutubeIframe.src = embedUrl;
+          }
+
+          if (modalYtDirectBtn && ytId) {
+            modalYtDirectBtn.href = ytUrl.startsWith("http") ? ytUrl : `https://youtube.com/watch?v=${ytId}`;
+            modalYtDirectBtn.classList.remove("d-none");
           }
         } else {
           const thumbnailEl = card.querySelector(".project-thumbnail");
           const bgUrl = thumbnailEl ? thumbnailEl.getAttribute("data-bg") : "";
 
+          if (modalImgWrapper) {
+            modalImgWrapper.classList.remove("modal-ratio-vertical", "modal-ratio-horizontal");
+          }
+          if (modalVideoBox && modalYoutubeIframe) {
+            modalVideoBox.classList.add("d-none");
+            modalYoutubeIframe.src = "";
+          }
+          if (modalYtDirectBtn) {
+            modalYtDirectBtn.classList.add("d-none");
+            modalYtDirectBtn.href = "#";
+          }
           if (modalVideo) {
             modalVideo.pause();
             modalVideo.classList.add("d-none");
             modalVideo.removeAttribute("src");
-            modalVideo.load();
-          }
-          if (modalImgWrapper) {
-            modalImgWrapper.style.backgroundImage = "";
           }
           if (modalImg) {
             modalImg.classList.remove("d-none");
@@ -583,16 +563,25 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Pause modal video & reset media when modal is closed
     modalElement.addEventListener("hidden.bs.modal", () => {
+      if (modalVideoBox && modalYoutubeIframe) {
+        modalYoutubeIframe.src = "";
+        modalVideoBox.classList.add("d-none");
+      }
+      if (modalYtDirectBtn) {
+        modalYtDirectBtn.classList.add("d-none");
+        modalYtDirectBtn.href = "#";
+      }
       if (modalVideo) {
         modalVideo.pause();
         modalVideo.removeAttribute("src");
         modalVideo.load();
+        modalVideo.classList.add("d-none");
       }
       if (modalImg) {
         modalImg.removeAttribute("src");
       }
       if (modalImgWrapper) {
-        modalImgWrapper.style.backgroundImage = "";
+        modalImgWrapper.classList.remove("modal-ratio-vertical", "modal-ratio-horizontal");
       }
     });
   }
